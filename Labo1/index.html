@@ -1,0 +1,309 @@
+<!DOCTYPE>
+<html lang="fr">
+
+<head>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" href="css/stylesheet.css" />
+
+	<!-- WEBGL SCRIPTS -->
+	<script src="js/commonFunctions.js"></script>
+	<script src="js/gl-matrix-min.js"></script>
+	<script src="js/webglTools.js">></script>
+	<script src="js/webgl-debug.js"></script>
+
+	<!-- Our triangle script -->
+	<script src="labo1.js"></script>
+
+</head>
+
+<body onload="initWebGL()">
+	<h1 style="text-align: center;">Equipe 10: Laboratoire 1 d'infographie</h1>
+	<h2 style="text-align: center;"> De Fabien Mottier, Segan Salomon et Sergiy Goloviatinski</h2>
+	<div id="container">
+		<div id="leftpanel">
+			<fieldset>
+				<legend>Keyboard/mouse Controls</legend>
+				<table id="controlsinfo">
+					<tr>
+						<td> W </td>
+						<td> Move camera forward </td>
+					</tr>
+					<tr>
+						<td> S </td>
+						<td> Move camera backward </td>
+					</tr>
+					<tr>
+						<td> D </td>
+						<td> Move camera right </td>
+					</tr>
+					<tr>
+						<td> A </td>
+						<td> Move camera left </td>
+					</tr>
+					<tr>
+					<tr>
+						<td> Q </td>
+						<td> Move camera down </td>
+					</tr>
+					<tr>
+					<tr>
+						<td> E </td>
+						<td> Move camera up </td>
+					</tr>
+
+					<!-- Rotation -->
+
+					<tr>
+						<td> J </td>
+						<td> Rotate X axis clockwisley </td>
+					</tr>
+					<tr>
+						<td> L </td>
+						<td> Rotate X axis counterclockwisley </td>
+					</tr>
+					<tr>
+						<td> I </td>
+						<td> Rotate Y axis clockwisley </td>
+					</tr>
+					<tr>
+						<td> K </td>
+						<td> Rotate Y axis counterclockwisley </td>
+					</tr>
+					<tr>
+					<tr>
+						<td> U </td>
+						<td> Rotate Z axis clockwisley </td>
+					</tr>
+					<tr>
+					<tr>
+						<td> O </td>
+						<td> Rotate Z axis counterclockwisley </td>
+					</tr>
+
+					<!-- Mouse -->
+
+					<tr>
+						<td> Rotate mouse wheel </td>
+						<td> Zoom-dezoom (move camera forward/backward) </td>
+					</tr>
+					<tr>
+						<td> Hold right mouse button and move mouse while mouse on canvas</td>
+						<td> Rotate camera X and Y axis</td>
+					</tr>
+					<tr>
+						<td> Hold right mouse button and rotate mouse wheel while mouse on canvas</td>
+						<td> Rotate camera Z axis</td>
+					</tr>
+					<tr>
+						<td> Click left mouse button on canvas</td>
+						<td> Add point </td>
+					</tr>
+				</table>
+			</fieldset>
+			<fieldset>
+				<legend>Resets</legend>
+				<button name="resetCameraButton" onclick="resetCamera()">Reset camera</button>
+				<button name="resetPointsButton" onclick="resetPoints()">Reset points</button>
+			</fieldset>
+			<fieldset>
+				<legend>Drawing methods types</legend>
+				<p>
+					<input type="radio" id="NoStrip" name="drawType" value="nostrip" checked /><label for="NoStrip"> Separated triangles</label>
+					<input type="radio" id="Strip" name="drawType" value="strip" /><label for="Strip"> Strip triangles</label>
+					<input type="radio" id="Fan" name="drawType" value="fan" /><label for="Fan"> Fan triangles</label>
+				</p>
+				<p>
+					<input type="radio" id="Line" name="drawType" value="line" /><label for="Line"> Lines</label>
+					<input type="radio" id="Line_Strip" name="drawType" value="line_strip" /><label for="Line_Strip"> Lines strip</label>
+					<input type="radio" id="Line_Loop" name="drawType" value="line_loop" /><label for="Line_Loop"> Lines loop</label>
+				</p>
+				<p>
+					<input type="radio" id="Point" name="drawType" value="point" /><label for="Point"> Points</label>
+					<input type="range" id="pointSize" value="1.0" min="1.0" max="100.0" step="0.1" oninput="updatePointSize(this.value);" onchange="updatePointSize(this.value);" />
+				</p>
+			</fieldset>
+		</div>
+
+		<canvas id="webgl-canvas" width="800" height="800" oncontextmenu="return false;">
+			HTML5 is not supported
+		</canvas>
+
+		<div id="rightpanel">
+			<fieldset id="lstVertices">
+				<legend>Vertice colors</legend>
+				<div id="vertex0">0:
+					<input type="color" id="color0" value="#ff0000" onchange="updateColorArrayFromColorPicker(this.id, this.value)" />
+					<button id="delete0" onclick="deletePoint(this.id)" onmouseover="inversePointColor(this.id)" onmouseout="inversePointColor(this.id)">delete</button></div>
+				<div id="vertex1">1:
+					<input type="color" id="color1" value="#00ff00" onchange="updateColorArrayFromColorPicker(this.id, this.value)" />
+					<button id="delete1" onclick="deletePoint(this.id)" onmouseover="inversePointColor(this.id)" onmouseout="inversePointColor(this.id)">delete</button></div>
+				<div id="vertex2">2:
+					<input type="color" id="color2" value="#0000ff" onchange="updateColorArrayFromColorPicker(this.id, this.value)" />
+					<button id="delete2" onclick="deletePoint(this.id)" onmouseover="inversePointColor(this.id)" onmouseout="inversePointColor(this.id)">delete</button></div>
+			</fieldset>
+		</div>
+	</div>
+</body>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+	attribute vec3 aVertexPosition;
+		attribute vec4 aColor;
+		uniform mat4 uMVMatrix;
+		uniform mat4 uPMatrix;
+		uniform float uPointSize;
+		varying vec4 vColor;
+
+		void main(void) {
+		vColor = aColor;
+		gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		gl_PointSize = uPointSize;
+		}
+	</script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+	#ifdef GL_ES
+		precision highp float;
+		#endif
+		varying vec4 vColor;
+		void main(void) {
+		gl_FragColor = vColor;
+		}
+	</script>
+<script>
+	var xPos = 0;
+	var yPos = 0;
+	var zPos = 0;
+
+	//https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+	function hexToRgb(hex) {
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result ? {
+			r: parseInt(result[1], 16),
+			g: parseInt(result[2], 16),
+			b: parseInt(result[3], 16)
+		} : null;
+	}
+
+	// https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+	function componentToHex(c) {
+		var hex = c.toString(16);
+		return hex.length == 1 ? "0" + hex : hex;
+	}
+
+	function rgbToHex(r, g, b) {
+		return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+	}
+
+	function updateColorArrayFromColorPicker(id, color) {
+		var currId = parseInt(id.substring(5));
+		colors[4 * currId] = hexToRgb(color).r / 255;
+		colors[4 * currId + 1] = hexToRgb(color).g / 255;
+		colors[4 * currId + 2] = hexToRgb(color).b / 255;
+
+		initBuffers();
+	}
+
+	function updatePointSize(size) {
+		pointSize = size;
+	}
+
+	document.addEventListener("keydown", function(e) {
+		switch (e.key) {
+			case 'd':
+				xPos -= 0.1;
+				break;
+			case 'w':
+				zPos += 0.1;
+				break;
+			case 'a':
+				xPos += 0.1;
+				break;
+			case 's':
+				zPos -= 0.1;
+				break;
+			case 'q':
+				yPos += 0.1;
+				break;
+			case 'e':
+				yPos -= 0.1;
+				break;
+			case 'j':
+				rotX -= 0.5;
+				break;
+			case 'l':
+				rotX += 0.5;
+				break;
+			case 'i':
+				rotY += 0.5;
+				break;
+			case 'k':
+				rotY -= 0.5;
+				break;
+			case 'u':
+				rotZ += 0.5;
+				break;
+			case 'o':
+				rotZ -= 0.5;
+				break;
+		}
+	});
+
+	function addPointOnGLScene(pX, pY) {
+		v = rotateVector(pX, pY, -2.0);
+		vertices.push(v[0], v[1], v[2]);
+		indices.push(indices.length);
+
+		colors.push(0, 0, 0, 1);
+
+		// console.log('v: ' + vertices + ' i: ' + indices + ' c: ' + colors);
+		initBuffers();
+	}
+
+	var myCanvas = document.getElementById('webgl-canvas');
+	myCanvas.addEventListener('click', function(evt) {
+		var mousePos = {
+			x: evt.offsetX,
+			y: evt.offsetY
+		};
+
+		var pX = (mousePos.x - myCanvas.width / 2.0) / myCanvas.width * 2.0; //on chope coor page et on transforme en coordonnées monde comme s'il n'y avait pas de rotation/translation de caméra
+		var pY = (myCanvas.height / 2.0 - mousePos.y) / myCanvas.height * 2.0;
+		// var message = 'point: ' + pX + ',' + pY;
+		// console.log(message);
+		addPointOnGLScene(pX, pY);
+
+		var newIndices = indices[indices.length - 1];
+		document.getElementById('lstVertices').innerHTML += '<div id="vertex' + newIndices + '">' + newIndices + ': <input type="color" id="color' + newIndices +
+			'" value="#000000" onchange="updateColorArrayFromColorPicker(this.id, this.value)" /><button id="delete' + newIndices +
+			'" onclick="deletePoint(this.id)" onmouseover="inversePointColor(this.id)" onmouseout="inversePointColor(this.id)">delete</button></div>';
+	}, false);
+
+	//sert à adapter la position du point dans le monde en compensant les rotations/translations de la caméra
+	function rotateVector(x, y, z) {
+		rx = -1 * degToRad(rotX);
+		ry = -1 * degToRad(rotY);
+		rz = -1 * degToRad(rotZ);
+
+		rotXQuat = quat.create();
+		quat.setAxisAngle(rotXQuat, [1, 0, 0], rx);
+
+		rotYQuat = quat.create();
+		quat.setAxisAngle(rotYQuat, [0, 1, 0], ry);
+
+		rotZQuat = quat.create();
+		quat.setAxisAngle(rotZQuat, [0, 0, 1], rz);
+
+		myQuaternion = quat.create();
+
+		quat.multiply(myQuaternion, rotXQuat, rotYQuat);
+		quat.multiply(myQuaternion, myQuaternion, rotZQuat);
+
+		v = vec3.fromValues(x - xPos, y - yPos, z - zPos);
+		vec3.transformQuat(v, v, myQuaternion);
+
+		return v;
+	}
+</script>
+<script src="js/mouseMotionHandling.js"></script>
+
+</html>

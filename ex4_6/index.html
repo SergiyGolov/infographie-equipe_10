@@ -1,0 +1,181 @@
+<!DOCTYPE>
+<html lang="fr">
+
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="../css/stylesheet.css" />
+
+		<!-- WEBGL SCRIPTS -->
+		<script src="../js/commonFunctions.js"></script>
+		<script src="../js/gl-matrix-min.js"></script>
+		<script src="../js/webglTools.js">></script>
+ zz
+		<script id="shader-vs" type="x-shader/x-vertex">
+			attribute vec3 aVertexPosition;
+			attribute vec4 aColor;
+			uniform mat4 uMVMatrix;
+			uniform mat4 uPMatrix;
+			varying vec4 vColor;
+
+			void main(void) {
+				vColor = aColor;
+				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.5);
+			}
+		</script>
+
+		<script id="shader-fs" type="x-shader/x-fragment">
+			#ifdef GL_ES
+				precision highp float;
+			#endif
+			varying vec4 vColor;
+
+			// Works only in WebGL 2.0 //
+			void main(void) {
+				if(
+				    (mod(abs(gl_FragCoord.x) * 10.0, 2.0) < 1.0 && mod(abs(gl_FragCoord.y) * 10.0, 2.0) < 1.0)
+				    ||
+				    (mod(abs(gl_FragCoord.x) * 10.0, 2.0) >= 1.0 && mod(abs(gl_FragCoord.y) * 10.0, 2.0) >= 1.0)
+				  )
+				{
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+				}
+				else
+				{
+					gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+				}
+			}
+		</script>
+
+
+		<script>
+			var zRotationOffset=0;
+			var yRotationOffset=0;
+			var xRotationOffset=0;
+
+			var zAngle=0;
+			var yAngle=0;
+			var xAngle=0;
+
+			var useA = false;
+			var useS = false;
+			var useD = false;
+			var useW = false;
+			var useQ = false;
+			var useE = false;
+
+			document.addEventListener("keydown",  function(e) {
+				switch(e.key)
+				{
+					case 'a':
+						if(!useA){
+							yRotationOffset-=0.1;
+							useA = true;
+						}
+						break;
+					case 's':
+						if(!useS){
+							xRotationOffset-=0.1;
+							useS = true;
+						}
+						break;
+					case 'd':
+						if(!useD){
+							yRotationOffset+=0.1;
+							useD = true;
+						}
+						break;
+					case 'w':
+						if(!useW){
+							xRotationOffset+=0.1;
+							useW = true;
+						}
+						break;
+					case 'q':
+						if(!useQ){
+							zRotationOffset+=0.1;
+							useQ = true;
+						}
+						break;
+					case 'e':
+						if(!useE){
+							zRotationOffset-=0.1;
+							useE = true;
+						}
+						break;
+				}
+			});
+
+			document.addEventListener("keyup",  function(e) {
+				switch(e.key)
+				{
+					case 'a':
+						yRotationOffset+=0.1;
+						useA = false;
+						break;
+					case 's':
+						xRotationOffset+=0.1;
+						useS = false;
+						break;
+					case 'd':
+						yRotationOffset-=0.1;
+						useD = false;
+						break;
+					case 'w':
+						xRotationOffset-=0.1;
+						useW = false;
+						break;
+					case 'q':
+						zRotationOffset-=0.1;
+						useQ = false;
+						break;
+					case 'e':
+						zRotationOffset+=0.1;
+						useE = false;
+						break;
+				}
+			});
+		</script>
+		<!-- Our triangle script -->
+		<script src="ex4_6.js"></script>
+
+	</head>
+	<body onload="initWebGL()">
+		<div class="container" id="leftpanel">
+			<h1>Controls</h1>
+			<div class="container" id="controlsinfopanel">
+				<p> To rotate the triangle you can use the following controls </p>
+				<table id="controlsinfo">
+					<tr>
+						<td> W </td>
+						<td> Rotate it on the X axis clockwisley </td>
+					</tr>
+					<tr>
+						<td> S </td>
+						<td> Rotate it on the X axis counterclockwise </td>
+					</tr>
+					<tr>
+						<td> D </td>
+						<td> Rotate it on the Y axis clockwise </td>
+					</tr>
+					<tr>
+						<td> A </td>
+						<td> Rotate it on the Y axis counterclockwise </td>
+					</tr>
+					<tr>
+						<td> Q </td>
+						<td> Rotate it on the Z axis clockwise </td>
+					</tr>
+					<tr>
+						<td> E </td>
+						<td> Rotate it on the Z axis counterclockwise </td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<div id="rightpanel">
+			<canvas id="webgl-canvas" width="750" height="750">
+				HTML5 is not supported
+			</canvas>
+		</div>
+	</body>
+</html>

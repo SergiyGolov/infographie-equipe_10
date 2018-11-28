@@ -1,0 +1,12 @@
+# To-do list
+- mettre plusieurs metaballs qui vont évoluer dans le canevas et pouvoir se dilater, compresser, fusionner et diviser.
+    - effet visuel épaisseur balls => vraiment une mélasse, donc éviter effet "2D" => mettre normal map sur chaque balls?
+- éclairage depuis le bas
+- pomper différents code sur internet:
+    - http://jamie-wong.com/2016/07/06/metaballs-and-webgl/
+    - https://codepen.io/team/Atcom/pen/dWwGKa
+    - https://www.ibiblio.org/e-notes/webgl/gpu/fluid.htm
+        - limite osef de la température, pas besoin de simuler tout bien le comportement, et quand il y a 2 sphères qui se collisionnent la plus basse est plus chaude que la plus haute + ajouter gravité + ajouter archimède
+        - faut qu'on regarde comment les balls se comportent
+- essayer de simuler physique lampe à lave (mouvement surtout vertical + comportement comme dans un fluide visqueux)
+- nice to have: restreindre le mouvement des balls à l'intérieur de la lampe + modéliser la vitre

@@ -1,0 +1,64 @@
+<!DOCTYPE>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="css/stylesheet.css" />
+  
+  <!-- WEBGL SCRIPTS -->
+  <script src="js/commonFunctions.js"></script>
+  <script src="js/gl-matrix-min.js"></script>
+  <script src="js/webglTools.js"></script>
+  
+  <!-- Our lavalamp script -->
+  <script src="js/labo2.js"></script>
+
+</head>
+
+<body onload="initWebGL()">
+  <canvas id="webgl-canvas" width="800" height="800">
+    HTML5 is not supported
+  </canvas>
+</body>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+      attribute vec3 aVertexPosition;
+
+      uniform mat4 uMVMatrix;
+      uniform mat4 uPMatrix;
+      varying vec4 vColor;
+
+
+      void main(void) {
+
+          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+
+
+      }
+    </script>
+<script id="shader-fs" type="x-shader/x-fragment">
+      #ifdef GL_ES
+            precision highp float;
+      #endif
+
+      const int NB_METABALLS=20;
+
+      uniform vec4 uMetaballs[NB_METABALLS];
+
+      void main(){
+            float x = gl_FragCoord.x;
+            float y = gl_FragCoord.y;
+            float v = 0.0;
+            for (int i = 0; i < NB_METABALLS ; i++) {
+                  vec4 mb = uMetaballs[i];
+                  float dx = mb.x - x;
+                  float dy = mb.y - y;
+                  float r = mb.z;
+                  float weight = mb.w;
+                  v += weight*r*r/(dx*dx + dy*dy);
+            }
+            gl_FragColor = vec4(v/20.0, 0, 0, 1.0);
+      }
+      </script>
+
+</html>
