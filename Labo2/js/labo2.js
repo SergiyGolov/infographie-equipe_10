@@ -31,15 +31,10 @@ function initShaderParameters(prg) {
     prg.pMatrixUniform = glContext.getUniformLocation(prg, 'uPMatrix');
     prg.mvMatrixUniform = glContext.getUniformLocation(prg, 'uMVMatrix');
 
-    
-    // prg.numMetaballs = glContext.getUniformLocation(prg, 'uNumMetaBalls');
-
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
-
 
     // Activation des tabeaux de données des sommets comme "attribut" OpenGL
     glContext.enableVertexAttribArray(prg.vertexPositionAttribute);
-
 }
 
 
@@ -51,7 +46,6 @@ function initPoints() {
         1.0, 1.0, // top right
         1.0, -1.0 // bottom right
     ];
-
 
     for (let i = 0; i < 4; i++) {
         indices.push(i);
@@ -80,9 +74,7 @@ function initMetaBalls() {
 function initBuffers() {
     // Récupération/mise à jour des tableaux de données et index
     vertexBuffer = getVertexBufferWithVertices(vertices);
-
     indexBuffer = getIndexBufferWithIndices(indices);
-    // metaBallsBuffer=getVertexBufferWithVertices(dataToSendToGPU);
 }
 
 
@@ -114,16 +106,11 @@ function drawScene() {
 
     glContext.uniformMatrix4fv(prg.mvMatrixUniform, false, mvMatrix);
 
-    glContext.uniform1i(prg.numMetaballs, NUM_METABALLS);
 
     glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
     glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 2 * 4, 0);
 
-
-
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-
 
     // Update positions and speeds
     for (let i = 0; i < NUM_METABALLS; i++) {
