@@ -16,7 +16,7 @@
 </head>
 
 <body onload="initWebGL()">
-  <canvas id="webgl-canvas" width="800" height="800">
+  <canvas id="webgl-canvas" width="400" height="600">
     HTML5 is not supported
   </canvas>
 </body>
@@ -36,26 +36,52 @@
             precision highp float;
       #endif
 
-      const int NB_METABALLS=5;
+      const int NB_METABALLS=15;
+      float SQUEEZE_MAX=250.0;
+
 
       uniform vec4 uMetaballs[NB_METABALLS];
+      uniform float uMetaballsSqueezes[NB_METABALLS];
       uniform vec2 uLight;
+
+      float WIDTH=200.0;
+      float HEIGHT=600.0;
+
 
       void main()
       {
             float x = gl_FragCoord.x;
             float y = gl_FragCoord.y;
 
-            if (abs(x - uLight.x) < 200.0 && abs(y - uLight.y) < 600.0)
+            if (abs(x - uLight.x) < WIDTH && abs(y - uLight.y) < HEIGHT)
             {
                   float v = 0.0;
-
+                  
                   for (int i = 0; i < NB_METABALLS; i++) {
+                        
                         vec4 mb = uMetaballs[i];
+                        float weight = mb.w;
+                        float squeeze = uMetaballsSqueezes[i];
                         float dx = mb.x - x;
                         float dy = mb.y - y;
                         float r = mb.z;
-                        float weight = mb.w;
+                        float SQUEEZE_Y_TRANSLATE=r/15.0;
+                        if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0)
+                        {
+                              dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));      
+                              dy+=r*squeeze/SQUEEZE_MAX;       
+                              dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
+                              
+                              
+
+                        }else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0)
+                        {
+                              dx/=(SQUEEZE_MAX/squeeze);
+                              dy+=r*(1.0-squeeze/SQUEEZE_MAX);       ;
+                              dy*=(SQUEEZE_MAX/squeeze);
+                              
+                        }
+
                         v += weight*r*r/(dx*dx + dy*dy);
                   }
 

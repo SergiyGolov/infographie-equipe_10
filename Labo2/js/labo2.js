@@ -11,17 +11,20 @@ var pMatrix = mat4.create();
 var metaballs = [];
 
 
-var NUM_METABALLS = 22;
-var dataToSendToGPU = [4 * NUM_METABALLS];
+var NUM_METABALLS = 15;
+var metaballsGPU = [4 * NUM_METABALLS];
+var metaballsSqueezeGPU=[NUM_METABALLS];
 
-var SPEED = 1;
-var RADIUS = 100;
-var MIN_RADIUS = 50;
+var SPEED = 1; 
+var RADIUS = 60;
+var MIN_RADIUS = 20;
 
 
-var canvas =null;
-var WIDTH =0;
-var HEIGHT =0;
+var canvas = null;
+var WIDTH = 0;
+var HEIGHT = 0;
+
+var SQUEEZE_MAX=250;
 
 
 function initShaderParameters(prg) {
@@ -32,6 +35,7 @@ function initShaderParameters(prg) {
     prg.mvMatrixUniform = glContext.getUniformLocation(prg, 'uMVMatrix');
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
+    prg.metaballsSqueeze = glContext.getUniformLocation(prg, 'uMetaballsSqueezes');
     prg.light = glContext.getUniformLocation(prg, 'uLight');
     // Activation des tabeaux de données des sommets comme "attribut" OpenGL
     glContext.enableVertexAttribArray(prg.vertexPositionAttribute);
@@ -66,9 +70,11 @@ function initMetaBalls() {
             y: Math.random() * (HEIGHT - 2 * radius) + radius,
             vy: Math.random() * SPEED - SPEED / 2.0,
             r: radius,
-            weight: weight
+            weight: weight,
+            squeeze:0
         });
     }
+
 }
 
 function initBuffers() {
@@ -82,6 +88,7 @@ function initWebGL() {
     canvas = document.getElementById("webgl-canvas");
     WIDTH = canvas.width;
     HEIGHT = canvas.height;
+
     glContext = getGLContext('webgl-canvas');
 
     initProgram();
@@ -116,13 +123,23 @@ function drawScene() {
     for (let i = 0; i < NUM_METABALLS; i++) {
         var mb = metaballs[i];
 
-        mb.y += mb.vy;
-        if (mb.y - mb.r < 0) {
-            mb.y = mb.r + 1;
-            mb.vy = Math.abs(mb.vy);
-        } else if (mb.y + mb.r > HEIGHT) {
-            mb.y = HEIGHT - mb.r;
-            mb.vy = -Math.abs(mb.vy);
+        if (mb.squeeze == 0) {
+            mb.y += mb.vy;
+            if (mb.y - mb.r < 0) {
+                mb.y = mb.r + 1;
+                mb.vy = Math.abs(mb.vy);
+            } else if (mb.y + mb.r *0.75 > HEIGHT) {
+                mb.y = HEIGHT - mb.r *0.75;
+                mb.saveVy=-mb.vy;
+                mb.vy = 0;
+                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
+            }
+        } else {
+            mb.squeeze--;
+            if (mb.squeeze == 0) {
+                mb.vy = mb.saveVy;
+            }
+
         }
     }
 
@@ -130,13 +147,15 @@ function drawScene() {
     for (var i = 0; i < NUM_METABALLS; i++) {
         var baseIndex = 4 * i;
         var mb = metaballs[i];
-        dataToSendToGPU[baseIndex + 0] = mb.x;
-        dataToSendToGPU[baseIndex + 1] = mb.y;
-        dataToSendToGPU[baseIndex + 2] = mb.r;
-        dataToSendToGPU[baseIndex + 3] = mb.weight;
+        metaballsGPU[baseIndex + 0] = mb.x;
+        metaballsGPU[baseIndex + 1] = mb.y;
+        metaballsGPU[baseIndex + 2] = mb.r;
+        metaballsGPU[baseIndex + 3] = mb.weight;
+        metaballsSqueezeGPU[i] = mb.squeeze;
     }
 
-    glContext.uniform4fv(prg.metaballs, dataToSendToGPU);
+    glContext.uniform4fv(prg.metaballs, metaballsGPU);
+    glContext.uniform1fv(prg.metaballsSqueeze, metaballsSqueezeGPU);
     var light = [];
     light[0] = WIDTH / 2.0;
     light[1] = 0;
