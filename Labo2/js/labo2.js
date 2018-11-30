@@ -128,8 +128,8 @@ function drawScene() {
             if (mb.y - mb.r < 0) {
                 mb.y = mb.r + 1;
                 mb.vy = Math.abs(mb.vy);
-            } else if (mb.y + mb.r *0.75 > HEIGHT) {
-                mb.y = HEIGHT - mb.r *0.75;
+            } else if (mb.y + mb.r  > HEIGHT) {
+                mb.y = HEIGHT - mb.r;
                 mb.saveVy=-mb.vy;
                 mb.vy = 0;
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
