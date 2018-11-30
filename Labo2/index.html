@@ -4,12 +4,12 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" href="css/stylesheet.css" />
-  
+
   <!-- WEBGL SCRIPTS -->
   <script src="js/commonFunctions.js"></script>
   <script src="js/gl-matrix-min.js"></script>
   <script src="js/webglTools.js"></script>
-  
+
   <!-- Our lavalamp script -->
   <script src="js/labo2.js"></script>
 
@@ -26,14 +26,9 @@
 
       uniform mat4 uMVMatrix;
       uniform mat4 uPMatrix;
-      varying vec4 vColor;
-
 
       void main(void) {
-
           gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-
-
       }
     </script>
 <script id="shader-fs" type="x-shader/x-fragment">
@@ -41,24 +36,38 @@
             precision highp float;
       #endif
 
-      const int NB_METABALLS=20;
+      const int NB_METABALLS=5;
 
       uniform vec4 uMetaballs[NB_METABALLS];
+      uniform vec2 uLight;
 
-      void main(){
+      void main()
+      {
             float x = gl_FragCoord.x;
             float y = gl_FragCoord.y;
-            float v = 0.0;
-            for (int i = 0; i < NB_METABALLS ; i++) {
-                  vec4 mb = uMetaballs[i];
-                  float dx = mb.x - x;
-                  float dy = mb.y - y;
-                  float r = mb.z;
-                  float weight = mb.w;
-                  v += weight*r*r/(dx*dx + dy*dy);
+
+            if (abs(x - uLight.x) < 200.0 && abs(y - uLight.y) < 600.0)
+            {
+                  float v = 0.0;
+
+                  for (int i = 0; i < NB_METABALLS; i++) {
+                        vec4 mb = uMetaballs[i];
+                        float dx = mb.x - x;
+                        float dy = mb.y - y;
+                        float r = mb.z;
+                        float weight = mb.w;
+                        v += weight*r*r/(dx*dx + dy*dy);
+                  }
+
+                  vec2  ray = vec2(x - uLight.x, y - uLight.y);
+                  float luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
+                  if (v >= 2.0)
+                  {
+                        gl_FragColor = vec4(250.0/luminosity, 0.0, 0.0, 1.0);
+                  } else {
+                        gl_FragColor = vec4(100.0/luminosity, 50.0/luminosity, 0.0, 0.5);
+                  }
             }
-            gl_FragColor = vec4(v/20.0, 0, 0, 1.0);
       }
       </script>
-
 </html>

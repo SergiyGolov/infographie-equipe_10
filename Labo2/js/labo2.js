@@ -11,7 +11,7 @@ var pMatrix = mat4.create();
 var metaballs = [];
 
 
-var NUM_METABALLS = 20;
+var NUM_METABALLS = 22;
 var dataToSendToGPU = [4 * NUM_METABALLS];
 
 var SPEED = 1;
@@ -32,7 +32,7 @@ function initShaderParameters(prg) {
     prg.mvMatrixUniform = glContext.getUniformLocation(prg, 'uMVMatrix');
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
-
+    prg.light = glContext.getUniformLocation(prg, 'uLight');
     // Activation des tabeaux de données des sommets comme "attribut" OpenGL
     glContext.enableVertexAttribArray(prg.vertexPositionAttribute);
 }
@@ -57,7 +57,7 @@ function initMetaBalls() {
     /**
      * Simulation setup
      */
-    
+
     for (var i = 0; i < NUM_METABALLS; i++) {
         var radius = Math.random() * RADIUS + MIN_RADIUS;
         var weight = 1;
@@ -83,7 +83,7 @@ function initWebGL() {
     WIDTH = canvas.width;
     HEIGHT = canvas.height;
     glContext = getGLContext('webgl-canvas');
-    
+
     initProgram();
 
     initPoints();
@@ -97,7 +97,7 @@ function initWebGL() {
 
 
 function drawScene() {
-    glContext.clearColor(0.0, 0.0, 0.0, 1.0);
+    glContext.clearColor(1.0, 1.0, 1.0, 1.0);
     glContext.enable(glContext.DEPTH_TEST);
     glContext.clear(glContext.COLOR_BUFFER_BIT | glContext.DEPTH_BUFFER_BIT);
     glContext.viewport(0, 0, c_width, c_height);
@@ -137,6 +137,9 @@ function drawScene() {
     }
 
     glContext.uniform4fv(prg.metaballs, dataToSendToGPU);
-
+    var light = [];
+    light[0] = WIDTH / 2.0;
+    light[1] = 0;
+    glContext.uniform2fv(prg.light, light);
     glContext.drawElements(glContext.TRIANGLE_STRIP, indices.length, glContext.UNSIGNED_SHORT, 0);
 }
