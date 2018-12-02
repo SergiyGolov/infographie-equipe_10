@@ -16,7 +16,7 @@
 </head>
 
 <body onload="initWebGL()">
-  <canvas id="webgl-canvas" width="400" height="600">
+  <canvas id="webgl-canvas" width="600" height="800">
     HTML5 is not supported
   </canvas>
 </body>
@@ -44,8 +44,14 @@
       uniform float uMetaballsSqueezes[NB_METABALLS];
       uniform vec2 uLight;
 
-      float WIDTH=200.0;
-      float HEIGHT=600.0;
+      // values between 0.0 and 1.0
+      uniform float uLampWidthMin;
+      uniform float uLampWidthMax;
+      uniform float uLampTopHeight;
+      uniform float uLampBotHeight;
+
+      float WIDTH=600.0;
+      float HEIGHT=800.0;
 
 
       void main()
@@ -53,45 +59,80 @@
             float x = gl_FragCoord.x;
             float y = gl_FragCoord.y;
 
-            if (abs(x - uLight.x) < WIDTH && abs(y - uLight.y) < HEIGHT)
-            {
-                  float v = 0.0;
-                  
-                  for (int i = 0; i < NB_METABALLS; i++) {
-                        
-                        vec4 mb = uMetaballs[i];
-                        float weight = mb.w;
-                        float squeeze = uMetaballsSqueezes[i];
-                        float dx = mb.x - x;
-                        float dy = mb.y - y;
-                        float r = mb.z;
-                        float SQUEEZE_Y_TRANSLATE=r/23.0;
-                        if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0)
-                        {
-                              dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));      
-                              dy+=r*squeeze/SQUEEZE_MAX;       
-                              dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
-                              
-                              
+            // Sorry for the ugliness of this but it can't be done in an other way with this kind of rendering technique for "metaballs"
+            float halfWidth = WIDTH / 2.0;
+            float lampTopHeight = uLampTopHeight * HEIGHT;
+            float lampBotHeight = uLampBotHeight * HEIGHT;
+            float smallerRingRadius = halfWidth * uLampWidthMin;
+            float greaterRingRadius = halfWidth * uLampWidthMax;
 
-                        }else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0)
-                        {
-                              dx/=(SQUEEZE_MAX/squeeze);
-                              dy+=r*(1.0-squeeze/SQUEEZE_MAX);       ;
-                              dy*=(SQUEEZE_MAX/squeeze);
-                              
+            if(y < lampBotHeight) // Bottom of the lamp
+            {
+                  float lampDY = y / lampBotHeight;
+                  float lampDX = greaterRingRadius - smallerRingRadius;
+                  float lampDif = lampDX * lampDY;
+                  float lampFinalX = lampDif + smallerRingRadius;
+
+                  if(x < (halfWidth - lampFinalX) || x > (halfWidth + lampFinalX))
+                        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+                  else
+                        gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+            }
+            else if(y > HEIGHT - lampTopHeight) // Top of the lamp
+            {
+                  float lampDY = (y - HEIGHT) / lampTopHeight;
+                  float lampDX = smallerRingRadius - greaterRingRadius;
+                  float lampDif = lampDX * lampDY;
+                  float lampFinalX = lampDif + smallerRingRadius;
+
+                  if(x < (halfWidth - lampFinalX) || x > (halfWidth + lampFinalX))
+                        gl_FragColor = vec4(1.0,1.0,1.0,1.0);
+                  else
+                        gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+            }
+            else // Draw lava
+            {
+                  
+                  if (abs(x - uLight.x) < greaterRingRadius && abs(y - uLight.y) < HEIGHT)
+                  {
+                        float v = 0.0;
+
+                        for (int i = 0; i < NB_METABALLS; i++) {
+
+                              vec4 mb = uMetaballs[i];
+                              float weight = mb.w;
+                              float squeeze = uMetaballsSqueezes[i];
+                              float dx = mb.x - x;
+                              float dy = mb.y - y;
+                              float r = mb.z;
+                              float SQUEEZE_Y_TRANSLATE=r/23.0;
+                              if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0)
+                              {
+                                    dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
+                                    dy+=r*squeeze/SQUEEZE_MAX;
+                                    dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
+
+
+
+                              }else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0)
+                              {
+                                    dx/=(SQUEEZE_MAX/squeeze);
+                                    dy+=r*(1.0-squeeze/SQUEEZE_MAX);
+                                    dy*=(SQUEEZE_MAX/squeeze);
+
+                              }
+
+                              v += weight*r*r/(dx*dx + dy*dy);
                         }
 
-                        v += weight*r*r/(dx*dx + dy*dy);
-                  }
-
-                  vec2  ray = vec2(x - uLight.x, y - uLight.y);
-                  float luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
-                  if (v >= 2.0)
-                  {
-                        gl_FragColor = vec4(250.0/luminosity, 0.0, 0.0, 1.0);
-                  } else {
-                        gl_FragColor = vec4(100.0/luminosity, 50.0/luminosity, 0.0, 0.5);
+                        vec2  ray = vec2(x - uLight.x, y - uLight.y);
+                        float luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
+                        if (v >= 2.0)
+                        {
+                              gl_FragColor = vec4(250.0/luminosity, 0.0, 0.0, 1.0);
+                        } else {
+                              gl_FragColor = vec4(100.0/luminosity, 50.0/luminosity, 0.0, 0.5);
+                        }
                   }
             }
       }
