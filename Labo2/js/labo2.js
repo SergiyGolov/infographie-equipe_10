@@ -25,7 +25,7 @@ var NUM_METABALLS = 15;
 var metaballsGPU = [4 * NUM_METABALLS];
 var metaballsSqueezeGPU=[NUM_METABALLS];
 
-var SPEED = 1; 
+var SPEED = 1;
 var RADIUS = 60;
 var MIN_RADIUS = 20;
 
@@ -53,6 +53,9 @@ function initShaderParameters(prg) {
     prg.lampWidthMax = glContext.getUniformLocation(prg, 'uLampWidthMax');
     prg.lampTopHeight = glContext.getUniformLocation(prg, 'uLampTopHeight');
     prg.lampBotHeight = glContext.getUniformLocation(prg, 'uLampBotHeight');
+
+    prg.width = glContext.getUniformLocation(prg, 'uWIDTH');
+    prg.height = glContext.getUniformLocation(prg, 'uHEIGHT');
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
     prg.metaballsSqueeze = glContext.getUniformLocation(prg, 'uMetaballsSqueezes');
@@ -102,7 +105,7 @@ function initBuffers() {
     // Récupération/mise à jour des tableaux de données et index
     vertexBuffer = getVertexBufferWithVertices(vertices);
     indexBuffer = getIndexBufferWithIndices(indices);
-    
+
     // With current technique it can't be used
     //lampTopBuffer = getVertexBufferWithVertices(lampTopVertices);
     //lampTopIndexBuffer = getIndexBufferWithIndices(lampTopIndices);
@@ -166,7 +169,7 @@ function initLamp() {
 
     let lampBotBottomLimit = 1.0;
     let lampBotUpperLimit = lampBotBottomLimit - LAMP_HEIGHT_BOT;
-    
+
 
     lampBotVertices = [
         -LAMP_RADIUS_MAX, lampBotUpperLimit, // 0
@@ -183,7 +186,7 @@ function initLamp() {
 }
 
 function drawScene() {
-    glContext.clearColor(1.0, 1.0, 1.0, 1.0);
+    glContext.clearColor(0.0, 0.0, 0.0, 1.0);
     glContext.enable(glContext.DEPTH_TEST);
     glContext.clear(glContext.COLOR_BUFFER_BIT | glContext.DEPTH_BUFFER_BIT);
     glContext.viewport(0, 0, c_width, c_height);
@@ -195,6 +198,9 @@ function drawScene() {
     glContext.uniform1f(prg.lampWidthMax, LAMP_RADIUS_MAX);
     glContext.uniform1f(prg.lampTopHeight, LAMP_HEIGHT_TOP);
     glContext.uniform1f(prg.lampBotHeight, LAMP_HEIGHT_BOT);
+
+    glContext.uniform1f(prg.width, WIDTH);
+    glContext.uniform1f(prg.height, HEIGHT);
 
     glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
     glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 2 * 4, 0);
@@ -232,13 +238,13 @@ function drawScene() {
         if(mb.y < lampBotHeight || mb.y > HEIGHT - lampTopHeight)
         {
             mb.vy = -mb.vy;
-        }    
-        
+        }
+
         console.log(halfWidth - greaterRadius);
         if(mb.x - mb.r < (halfWidth - greaterRadius))
         {
             mb.x += 0.1;
-        } 
+        }
         else if(mb.x + mb.r > (halfWidth + greaterRadius))
         {
             mb.x -= 0.1;
