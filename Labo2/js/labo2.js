@@ -213,7 +213,7 @@ function drawScene() {
             mb.y += mb.vy;
             if (mb.y - mb.r < 0) {
                 mb.y = mb.r + 1;
-                mb.vy = Math.abs(mb.vy) + random() - random();
+                mb.vy = Math.abs(mb.vy);
             } else if (mb.y + mb.r  > HEIGHT) {
                 mb.y = HEIGHT - mb.r;
                 mb.saveVy=-mb.vy;
