@@ -116,6 +116,8 @@ function initWebGL() {
     WIDTH = canvas.width;
     HEIGHT = canvas.height;
 
+    console.log(WIDTH);
+
     glContext = getGLContext('webgl-canvas');
 
     initProgram();
@@ -198,6 +200,11 @@ function drawScene() {
     glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 2 * 4, 0);
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
+    let lampTopHeight = LAMP_HEIGHT_TOP * HEIGHT;
+    let lampBotHeight = LAMP_HEIGHT_BOT * HEIGHT;
+    let greaterRadius = (LAMP_RADIUS_MAX / 2.0) * WIDTH;
+    let halfWidth = WIDTH / 2.0;
+
     // Update positions and speeds
     for (let i = 0; i < NUM_METABALLS; i++) {
         var mb = metaballs[i];
@@ -206,7 +213,7 @@ function drawScene() {
             mb.y += mb.vy;
             if (mb.y - mb.r < 0) {
                 mb.y = mb.r + 1;
-                mb.vy = Math.abs(mb.vy);
+                mb.vy = Math.abs(mb.vy) + random() - random();
             } else if (mb.y + mb.r  > HEIGHT) {
                 mb.y = HEIGHT - mb.r;
                 mb.saveVy=-mb.vy;
@@ -219,6 +226,22 @@ function drawScene() {
                 mb.vy = mb.saveVy;
             }
 
+        }
+
+        // Constraints
+        if(mb.y < lampBotHeight || mb.y > HEIGHT - lampTopHeight)
+        {
+            mb.vy = -mb.vy;
+        }    
+        
+        console.log(halfWidth - greaterRadius);
+        if(mb.x - mb.r < (halfWidth - greaterRadius))
+        {
+            mb.x += 0.1;
+        } 
+        else if(mb.x + mb.r > (halfWidth + greaterRadius))
+        {
+            mb.x -= 0.1;
         }
     }
 
