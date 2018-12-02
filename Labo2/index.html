@@ -36,8 +36,8 @@
             precision highp float;
       #endif
 
-      const int NB_METABALLS=15;
-      float SQUEEZE_MAX=250.0;
+      const int NB_METABALLS=12;
+      float SQUEEZE_MAX=400.0; // TO-DO: pass this variable with uniform to shader
 
 
       uniform vec4 uMetaballs[NB_METABALLS];
@@ -156,21 +156,16 @@
                               float dx = mb.x - x;
                               float dy = mb.y - y;
                               float r = mb.z;
-                              float SQUEEZE_Y_TRANSLATE=r/23.0;
-                              if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0)
-                              {
+
+                              if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0){
                                     dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
-                                    dy+=r*squeeze/SQUEEZE_MAX;
+                                    
                                     dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
-
-
-
-                              }else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0)
-                              {
+                              }
+                              else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
                                     dx/=(SQUEEZE_MAX/squeeze);
-                                    dy+=r*(1.0-squeeze/SQUEEZE_MAX);
+                                    
                                     dy*=(SQUEEZE_MAX/squeeze);
-
                               }
 
                               v += weight*r*r/(dx*dx + dy*dy);

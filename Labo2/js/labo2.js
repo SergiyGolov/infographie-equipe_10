@@ -21,7 +21,7 @@ var pMatrix = mat4.create();
 var metaballs = [];
 
 
-var NUM_METABALLS = 15;
+var NUM_METABALLS = 12;
 var metaballsGPU = [4 * NUM_METABALLS];
 var metaballsSqueezeGPU=[NUM_METABALLS];
 
@@ -34,7 +34,7 @@ var canvas = null;
 var WIDTH = 0;
 var HEIGHT = 0;
 
-var SQUEEZE_MAX=250;
+var SQUEEZE_MAX=400;
 
 var LAMP_RADIUS_MIN = 0.6;
 var LAMP_RADIUS_MAX = 0.8;
@@ -119,7 +119,7 @@ function initWebGL() {
     WIDTH = canvas.width;
     HEIGHT = canvas.height;
 
-    console.log(WIDTH);
+    //console.log(WIDTH);
 
     glContext = getGLContext('webgl-canvas');
 
@@ -217,38 +217,41 @@ function drawScene() {
 
         if (mb.squeeze == 0) {
             mb.y += mb.vy;
-            if (mb.y - mb.r < 0) {
-                mb.y = mb.r + 1;
-                mb.vy = Math.abs(mb.vy);
-            } else if (mb.y + mb.r  > HEIGHT) {
-                mb.y = HEIGHT - mb.r;
-                mb.saveVy=-mb.vy;
+            if (mb.y < lampBotHeight ) {
+                mb.vy = Math.abs(mb.vy)*1.25;
+            } else if (mb.y > HEIGHT - lampTopHeight) {
+                mb.y = HEIGHT - lampTopHeight;
+                mb.saveVy=-mb.vy*0.8;
                 mb.vy = 0;
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
+            }else{
+
+                if(mb.vy>0 && mb.y-lampBotHeight<(HEIGHT - lampTopHeight-lampBotHeight)/4.0){
+                    mb.vy*=1.0001;
+                }else if (mb.vy<0 && mb.y-lampBotHeight>(HEIGHT - lampTopHeight-lampBotHeight)*3.0/4.0){
+                    mb.vy*=0.9999;
+                }
+
             }
+
+             //console.log(halfWidth - greaterRadius);
+            if(mb.x - mb.r < (halfWidth - greaterRadius))
+            {
+                mb.x += 0.1;
+            }
+            else if(mb.x + mb.r > (halfWidth + greaterRadius))
+            {
+                mb.x -= 0.1;
+            }
+
         } else {
             mb.squeeze--;
             if (mb.squeeze == 0) {
                 mb.vy = mb.saveVy;
             }
-
         }
 
-        // Constraints
-        if(mb.y < lampBotHeight || mb.y > HEIGHT - lampTopHeight)
-        {
-            mb.vy = -mb.vy;
-        }
-
-        console.log(halfWidth - greaterRadius);
-        if(mb.x - mb.r < (halfWidth - greaterRadius))
-        {
-            mb.x += 0.1;
-        }
-        else if(mb.x + mb.r > (halfWidth + greaterRadius))
-        {
-            mb.x -= 0.1;
-        }
+       
     }
 
 
