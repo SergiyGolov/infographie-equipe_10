@@ -230,9 +230,9 @@ function drawScene() {
             }else{
 
                 if(mb.vy>0 && mb.y-lampBotHeight<(HEIGHT - lampTopHeight-lampBotHeight)/4.0){
-                    mb.vy*=1.0001;
+                    mb.vy*=1.001;
                 }else if (mb.vy<0 && mb.y-lampBotHeight>(HEIGHT - lampTopHeight-lampBotHeight)*3.0/4.0){
-                    mb.vy*=0.9999;
+                    mb.vy*=0.999;
                 }
 
             }

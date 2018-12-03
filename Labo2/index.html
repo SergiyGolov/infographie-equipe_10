@@ -19,6 +19,7 @@
   <canvas id="webgl-canvas" width="400" height="600">
     HTML5 is not supported
   </canvas>
+  <button id="sqitch">Toggle light</button>
 </body>
 
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -38,8 +39,6 @@
 
       const int NB_METABALLS=12;
       float SQUEEZE_MAX=400.0; // TO-DO: pass this variable with uniform to shader
-
-      float SQUEEZE_FACTOR=0.5;
 
 
       uniform vec4 uMetaballs[NB_METABALLS];
@@ -81,30 +80,30 @@
                         gl_FragColor = vec4(1.0,1.0,1.0,1.0);
                   else
                   {
-                    // Position external lamp
-                    vec3 externalLight = vec3(uWIDTH * 0.8, uHEIGHT * 0.8, -10.0);
-                    // position the view of the user
-                    vec3 pointOfView = vec3(halfWidth, uHEIGHT / 2.0, -10.0);
+                  // Position external lamp
+                  vec3 externalLight = vec3(uWIDTH * 0.8, uHEIGHT * 0.8, -10.0);
+                  // position the view of the user
+                  vec3 pointOfView = vec3(halfWidth, uHEIGHT / 2.0, -10.0);
 
-                    // calcul the 3D position of the pixel of the lamp and its normal
-                    vec3 centerLamp = vec3(halfWidth, y, 0);
-                    vec3 direction = vec3(x, y, -lampFinalX);
-                    vec3 normal = normalize(direction - centerLamp);
-                    vec3 externalPoint = vec3(x, y, 0.0) + lampFinalX * normal;
+                  // calcul the 3D position of the pixel of the lamp and its normal
+                  vec3 centerLamp = vec3(halfWidth, y, 0);
+                  vec3 direction = vec3(x, y, -lampFinalX);
+                  vec3 normal = normalize(direction - centerLamp);
+                  vec3 externalPoint = vec3(x, y, 0.0) + lampFinalX * normal;
 
-                    // calcul angle between view and light
-                    vec3 view = externalPoint - pointOfView;
-                    float distView = sqrt(view.x * view.x + view.y * view.y + view.z * view.z);
-                    vec3 ray = externalPoint - externalLight;
-                    float distRay = sqrt(ray.x * ray.x + ray.y * ray.y + ray.z * ray.z);
-                    float angle = dot(view, ray) / (distView * distRay);
+                  // calcul angle between view and light
+                  vec3 view = externalPoint - pointOfView;
+                  float distView = sqrt(view.x * view.x + view.y * view.y + view.z * view.z);
+                  vec3 ray = externalPoint - externalLight;
+                  float distRay = sqrt(ray.x * ray.x + ray.y * ray.y + ray.z * ray.z);
+                  float angle = dot(view, ray) / (distView * distRay);
 
-                    // Illumination of phong
-                    vec3 color = vec3(0.5,0.5,0.5);
-                    vec3 ambiantColor = vec3(0.1, 0.1, 0.1);
-                    vec3 diffuseColor = color * cos(angle);
-                    vec3 specularColor = color * 0.6 / sin(angle);
-                    gl_FragColor = vec4((ambiantColor + diffuseColor + specularColor),1.0);
+                  // Illumination of phong
+                  vec3 color = vec3(0.5,0.5,0.5);
+                  vec3 ambiantColor = vec3(0.1, 0.1, 0.1);
+                  vec3 diffuseColor = color * cos(angle);
+                  vec3 specularColor = color * 0.6 / sin(angle);
+                  gl_FragColor = vec4((ambiantColor + diffuseColor + specularColor),1.0);
                   }
             }
             else if(y > uHEIGHT - lampTopHeight) // Top of the lamp
@@ -160,14 +159,18 @@
                               float dy = mb.y - y;
                               float r = mb.z;
                               if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0){
-                                    dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); //1.0 -> 2.0
+                                    float squeeze_factor=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); // 1.0->2.0
+
+                                    dx/=squeeze_factor; //1.0 -> 2.0
                                     
-                                    dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
+                                    dy*=squeeze_factor;
                               }
                               else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
-                                    dx/=(SQUEEZE_MAX/squeeze); // 2.0 -> 1.0
+                                    float squeeze_factor=(SQUEEZE_MAX/squeeze); // 2.0->1.0
                                     
-                                    dy*=(SQUEEZE_MAX/squeeze);
+                                    dx/=squeeze_factor; 
+                                    
+                                    dy*=squeeze_factor;
                               }
 
                               v += weight*r*r/(dx*dx + dy*dy);
