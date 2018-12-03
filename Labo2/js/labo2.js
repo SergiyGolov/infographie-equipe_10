@@ -218,7 +218,10 @@ function drawScene() {
         if (mb.squeeze == 0) {
             mb.y += mb.vy;
             if (mb.y < lampBotHeight ) {
-                mb.vy = Math.abs(mb.vy)*1.25;
+                mb.y = lampBotHeight;
+                mb.saveVy=Math.abs(mb.vy)*1.25;
+                mb.vy = 0;
+                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             } else if (mb.y > HEIGHT - lampTopHeight) {
                 mb.y = HEIGHT - lampTopHeight;
                 mb.saveVy=-mb.vy*0.8;

@@ -39,6 +39,8 @@
       const int NB_METABALLS=12;
       float SQUEEZE_MAX=400.0; // TO-DO: pass this variable with uniform to shader
 
+      float SQUEEZE_FACTOR=0.5;
+
 
       uniform vec4 uMetaballs[NB_METABALLS];
       uniform float uMetaballsSqueezes[NB_METABALLS];
@@ -65,6 +67,7 @@
             float lampBotHeight = uLampBotHeight * uHEIGHT;
             float smallerRingRadius = halfWidth * uLampWidthMin;
             float greaterRingRadius = halfWidth * uLampWidthMax;
+            
 
 
             if(y < lampBotHeight) // Bottom of the lamp
@@ -156,14 +159,13 @@
                               float dx = mb.x - x;
                               float dy = mb.y - y;
                               float r = mb.z;
-
                               if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0){
-                                    dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
+                                    dx/=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); //1.0 -> 2.0
                                     
                                     dy*=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze));
                               }
                               else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
-                                    dx/=(SQUEEZE_MAX/squeeze);
+                                    dx/=(SQUEEZE_MAX/squeeze); // 2.0 -> 1.0
                                     
                                     dy*=(SQUEEZE_MAX/squeeze);
                               }
