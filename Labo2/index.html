@@ -41,11 +41,16 @@
             precision highp float;
       #endif
 
+      //Sorry for this, but we can't pass a const with a uniform variable
       const int NB_METABALLS=12;
-      float SQUEEZE_MAX=400.0; // TO-DO: pass this variable with uniform to shader
 
+      //Max frame count for squeezing animation when the balls are on the bottom/top of the lamp
+      uniform float uMetaballsSqueezeMax;
 
+      //Information for each metaball: x,y position, radius and weight
       uniform vec4 uMetaballs[NB_METABALLS];
+
+      //Squeeze animation frame count
       uniform float uMetaballsSqueezes[NB_METABALLS];
       uniform vec2 uLight;
 
@@ -163,31 +168,38 @@
                               float dx = mb.x - x;
                               float dy = mb.y - y;
                               float r = mb.z;
-                              if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0){
-                                    float squeeze_factor=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); // 1.0->2.0
 
-                                    dx/=squeeze_factor; //1.0 -> 2.0
+                              //First half of animation: dilatation in x and contraction in y
+                              if(squeeze>0.0 && squeeze<uMetaballsSqueezeMax/2.0){
+                                    float squeeze_factor=(uMetaballsSqueezeMax/(uMetaballsSqueezeMax-squeeze)); // 1.0->2.0
+
+                                    dx/=squeeze_factor;
 
                                     dy*=squeeze_factor;
-                              }
-                              else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
-                                    float squeeze_factor=(SQUEEZE_MAX/squeeze); // 2.0->1.0
+                              }//Second half of animation: contraction in x and dilatation in y to come back to original state (round) before squeeze animation
+                              else if(squeeze>0.0 && squeeze>=uMetaballsSqueezeMax/2.0){
+                                    float squeeze_factor=(uMetaballsSqueezeMax/squeeze); // 2.0->1.0
 
                                     dx/=squeeze_factor;
 
                                     dy*=squeeze_factor;
                               }
 
+                              // calcul if the pixel is metaball or not
+                              // with a "gravity" of balls (with weight and distance)
                               v += weight*r*r/(dx*dx + dy*dy);
                         }
 
                         float luminosity = 600.0;
+
+                        // if the lamp is ON calcul the light with the distance from the light inside the lamp
                         if (uLightActivated == 1.0)
                         {
                               vec2  ray = vec2(x - uLight.x, y - uLight.y);
                               luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
                         }
 
+                        // if the pixel is inside or near metaball get true
                         if (v >= 2.0)
                         {
                               gl_FragColor = vec4(250.0/luminosity, 0.0, 0.0, 1.0);

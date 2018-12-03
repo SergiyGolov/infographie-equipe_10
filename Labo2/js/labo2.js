@@ -22,19 +22,25 @@ var metaballs = [];
 
 
 var NUM_METABALLS = 12;
+
+//Information for each metaball to pass to the GPU
 var metaballsGPU = [4 * NUM_METABALLS];
-var metaballsSqueezeGPU=[NUM_METABALLS];
+
+//Squeeze frame count to pass to the GPU
+var metaballsSqueezeGPU = [NUM_METABALLS];
 
 var SPEED = 1;
 var RADIUS = 60;
 var MIN_RADIUS = 20;
 
+// Update
+var previousTime = new Date().getTime();
 
 var canvas = null;
 var WIDTH = 0;
 var HEIGHT = 0;
 
-var SQUEEZE_MAX=400;
+var SQUEEZE_MAX = 400;
 
 var LAMP_RADIUS_MIN = 0.6;
 var LAMP_RADIUS_MAX = 0.8;
@@ -42,7 +48,8 @@ var LAMP_HEIGHT_TOP = 0.1;
 var LAMP_HEIGHT_BOT = 0.1;
 
 var light = [];
-var lightActivated  = true;
+var lightActivated = true;
+
 
 function initShaderParameters(prg) {
     // Récupération d'attributs depuis le context OpenGL
@@ -56,6 +63,7 @@ function initShaderParameters(prg) {
     prg.lampTopHeight = glContext.getUniformLocation(prg, 'uLampTopHeight');
     prg.lampBotHeight = glContext.getUniformLocation(prg, 'uLampBotHeight');
 
+
     prg.width = glContext.getUniformLocation(prg, 'uWIDTH');
     prg.height = glContext.getUniformLocation(prg, 'uHEIGHT');
 
@@ -63,6 +71,8 @@ function initShaderParameters(prg) {
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
     prg.metaballsSqueeze = glContext.getUniformLocation(prg, 'uMetaballsSqueezes');
+    prg.metaballsSqueezeMax = glContext.getUniformLocation(prg, 'uMetaballsSqueezeMax');
+
     prg.light = glContext.getUniformLocation(prg, 'uLight');
 
     // Activation des tabeaux de données des sommets comme "attribut" OpenGL
@@ -92,14 +102,17 @@ function initMetaBalls() {
 
     for (var i = 0; i < NUM_METABALLS; i++) {
         var radius = Math.random() * RADIUS + MIN_RADIUS;
-        var weight = radius/100.0;
+        var weight = radius / 100.0;
         metaballs.push({
             x: Math.random() * (WIDTH - 2 * radius) + radius,
             y: Math.random() * (HEIGHT - 2 * radius) + radius,
+            vx: 0,
             vy: Math.random() * SPEED - SPEED / 2.0,
+            fx: 0,
+            fy: 0,
             r: radius,
             weight: weight,
-            squeeze:0
+            squeeze: 0
         });
     }
 
@@ -210,6 +223,8 @@ function drawScene() {
     glContext.uniform1f(prg.width, WIDTH);
     glContext.uniform1f(prg.height, HEIGHT);
 
+    glContext.uniform1f(prg.metaballsSqueezeMax, SQUEEZE_MAX);
+
     glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
     glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 2 * 4, 0);
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -219,49 +234,77 @@ function drawScene() {
     let greaterRadius = (LAMP_RADIUS_MAX / 2.0) * WIDTH;
     let halfWidth = WIDTH / 2.0;
 
+    // Get seconds elapsed
+    let dt = (new Date().getTime() - previousTime) / 1000.0;
+    let dt2 = dt * dt;
+
     // Update positions and speeds
     for (let i = 0; i < NUM_METABALLS; i++) {
         var mb = metaballs[i];
 
-        if (mb.squeeze == 0) {
-            mb.y += mb.vy;
-            if (mb.y < lampBotHeight ) {
-                mb.y = lampBotHeight;
-                mb.saveVy=mb.vy;
-                mb.vy = 0;
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
-            }else if (mb.y > HEIGHT - lampTopHeight) {
-                mb.y = HEIGHT - lampTopHeight;
-                mb.saveVy=-mb.vy;
-                mb.vy = 0;
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
-            }else{
-                if(mb.vy>0 && mb.y-lampBotHeight<(HEIGHT - lampTopHeight-lampBotHeight)/4.0){
-                    mb.vy*=1.002;
-                }else if (mb.vy<0 && mb.y-lampBotHeight>(HEIGHT - lampTopHeight-lampBotHeight)*3.0/4.0){
-                    mb.vy*=0.998;
-                }
-            }
+        // Reset force
+        mb.fx = 0;
+        mb.fy = 0;
 
-             //console.log(halfWidth - greaterRadius);
-            if(mb.x - mb.r < (halfWidth - greaterRadius))
-            {
-                mb.x += 0.1;
-            }
-            else if(mb.x + mb.r > (halfWidth + greaterRadius))
-            {
-                mb.x -= 0.1;
-            }
+        // Apply Gravity
+        mb.fy += -9.81 * mb.weight;
 
+
+
+        // Apply Lava Lamp Force (the warmth is pushing the balls upwards), random is used to avoid balls stacking in the same position after the light turns off
+        if (lightActivated && (Math.random() > 0.3))
+            mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
+
+        //Random x force to avoid the stacking of the balls on the same position after the light turns off
+        if (lightActivated && (Math.random() > 0.7))
+            mb.fx += 10 * (Math.random() * 2 - 1);
+
+        // Get acceleration
+        let ax = mb.fx / mb.weight;
+        let ay = mb.fy / mb.weight;
+
+        // Get new position
+        let nextX = mb.x + (mb.vx * dt) + (ax * dt2);
+        let nextY = mb.y + (mb.vy * dt) + (ay * dt2);
+
+        // Get new speed
+        mb.vx = (nextX - mb.x) / dt;
+        mb.vy = (nextY - mb.y) / dt;
+
+        if (nextY < lampBotHeight) {
+            nextY = lampBotHeight;
+            if (mb.vy < -5) //avoid calling the squeeze animation if the ball has not enough inertia
+                mb.squeeze = SQUEEZE_MAX; // frame tick number for squeeze animation
+            mb.vy = 0;
+        } else if (nextY > HEIGHT - lampTopHeight) {
+            nextY = HEIGHT - lampTopHeight;
+            if (mb.vy > 5)//avoid calling the squeeze animation if the ball has not enough inertia
+                mb.squeeze = SQUEEZE_MAX; // frame tick number for squeeze animation
+            mb.vy = 0;
         } else {
-            mb.squeeze--;
-            if (mb.squeeze == 0) {
-                mb.vy = mb.saveVy;
-            }
+            //if ball is beyond limits, the squeeze animation duration is extended
+            if (nextY > HEIGHT - lampTopHeight - mb.radius || nextY < lampBotHeight + mb.radius)
+                mb.squeeze += 3;
+            else //decrement squeeze animation count, influences duration of the animation (if we substract more than 3 the animation is faster, if we substract less than 3 the animation is slower)
+                mb.squeeze -= 3;
         }
+
+
+        // Border constraints
+        if (nextX - mb.r < (halfWidth - greaterRadius) || nextX + mb.r > (halfWidth + greaterRadius)) {
+            mb.vx = 0;
+        }
+
+        // Set new position
+        mb.x = nextX;
+        mb.y = nextY;
+
+        // Reset previous time
+        previousTime = new Date().getTime();
     }
 
 
+    //We copy the values to pass to the GPU
     for (var i = 0; i < NUM_METABALLS; i++) {
         var baseIndex = 4 * i;
         var mb = metaballs[i];
@@ -277,28 +320,8 @@ function drawScene() {
 
     glContext.uniform2fv(prg.light, light);
     glContext.drawElements(glContext.TRIANGLE_STRIP, indices.length, glContext.UNSIGNED_SHORT, 0);
-
-    // Draw lamp
-
-    /* With current technique it can't be used
-
-    // Top part
-    glContext.bindBuffer(glContext.ARRAY_BUFFER, lampTopBuffer);
-    glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 0, 0);
-
-    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, lampTopIndexBuffer);
-    glContext.drawElements(glContext.TRIANGLE_STRIP, lampTopIndices.length, glContext.UNSIGNED_SHORT, 0);
-
-    // Bot part
-    glContext.bindBuffer(glContext.ARRAY_BUFFER, lampBotBuffer);
-    glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 0, 0);
-
-    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, lampBotIndexBuffer);
-    glContext.drawElements(glContext.TRIANGLE_STRIP, lampBotIndices.length, glContext.UNSIGNED_SHORT, 0);
-    */
 }
 
-function toggleLight()
-{
+function toggleLight() {
     lightActivated = !lightActivated;
 }
