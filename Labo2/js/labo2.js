@@ -227,22 +227,20 @@ function drawScene() {
             mb.y += mb.vy;
             if (mb.y < lampBotHeight ) {
                 mb.y = lampBotHeight;
-                mb.saveVy=Math.abs(mb.vy)*1.25;
+                mb.saveVy=mb.vy;
                 mb.vy = 0;
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
-            } else if (mb.y > HEIGHT - lampTopHeight) {
+            }else if (mb.y > HEIGHT - lampTopHeight) {
                 mb.y = HEIGHT - lampTopHeight;
-                mb.saveVy=-mb.vy*0.8;
+                mb.saveVy=-mb.vy;
                 mb.vy = 0;
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             }else{
-
                 if(mb.vy>0 && mb.y-lampBotHeight<(HEIGHT - lampTopHeight-lampBotHeight)/4.0){
-                    mb.vy*=1.001;
+                    mb.vy*=1.002;
                 }else if (mb.vy<0 && mb.y-lampBotHeight>(HEIGHT - lampTopHeight-lampBotHeight)*3.0/4.0){
-                    mb.vy*=0.999;
+                    mb.vy*=0.998;
                 }
-
             }
 
              //console.log(halfWidth - greaterRadius);

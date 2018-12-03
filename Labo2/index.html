@@ -16,10 +16,14 @@
 </head>
 
 <body onload="initWebGL()" style="text-align:center;">
-  <canvas id="webgl-canvas" width="400" height="600">
-    HTML5 is not supported
-  </canvas>
-  <button id="sqitch" onclick="toggleLight();" >Toggle light</button>
+  <h2>Laboratoire n°2 d'infographie</h2>
+  <h3>De Fabien Mottier, Sergy Goloviatinski et Segan Salomon</h3>
+    <canvas id="webgl-canvas" width="400" height="600">
+      HTML5 is not supported
+    </canvas>
+  <div style="margin-top: 10px;">
+    <button onclick="toggleLight();" >Toggle light</button>
+  </div>
 </body>
 
 <script id="shader-vs" type="x-shader/x-vertex">
