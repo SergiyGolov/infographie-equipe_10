@@ -23,7 +23,7 @@ var metaballs = [];
 
 var NUM_METABALLS = 12;
 var metaballsGPU = [4 * NUM_METABALLS];
-var metaballsSqueezeGPU=[NUM_METABALLS];
+var metaballsSqueezeGPU = [NUM_METABALLS];
 
 var SPEED = 1;
 var RADIUS = 60;
@@ -36,7 +36,7 @@ var canvas = null;
 var WIDTH = 0;
 var HEIGHT = 0;
 
-var SQUEEZE_MAX=400;
+var SQUEEZE_MAX = 400;
 
 var LAMP_RADIUS_MIN = 0.6;
 var LAMP_RADIUS_MAX = 0.8;
@@ -44,7 +44,7 @@ var LAMP_HEIGHT_TOP = 0.1;
 var LAMP_HEIGHT_BOT = 0.1;
 
 var light = [];
-var lightActivated  = true;
+var lightActivated = true;
 
 
 function initShaderParameters(prg) {
@@ -58,7 +58,7 @@ function initShaderParameters(prg) {
     prg.lampWidthMax = glContext.getUniformLocation(prg, 'uLampWidthMax');
     prg.lampTopHeight = glContext.getUniformLocation(prg, 'uLampTopHeight');
     prg.lampBotHeight = glContext.getUniformLocation(prg, 'uLampBotHeight');
-    
+
 
     prg.width = glContext.getUniformLocation(prg, 'uWIDTH');
     prg.height = glContext.getUniformLocation(prg, 'uHEIGHT');
@@ -98,7 +98,7 @@ function initMetaBalls() {
 
     for (var i = 0; i < NUM_METABALLS; i++) {
         var radius = Math.random() * RADIUS + MIN_RADIUS;
-        var weight = radius/100.0;
+        var weight = radius / 100.0;
         metaballs.push({
             x: Math.random() * (WIDTH - 2 * radius) + radius,
             y: Math.random() * (HEIGHT - 2 * radius) + radius,
@@ -108,7 +108,7 @@ function initMetaBalls() {
             fy: 0,
             r: radius,
             weight: weight,
-            squeeze:0
+            squeeze: 0
         });
     }
 
@@ -248,10 +248,10 @@ function drawScene() {
 
 
         // Apply Lava Lamp Force
-        if(lightActivated && (Math.random() > 0.3))
+        if (lightActivated && (Math.random() > 0.3))
             mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
 
-        if(lightActivated && (Math.random() > 0.7))
+        if (lightActivated && (Math.random() > 0.7))
             mb.fx += 10 * (Math.random() * 2 - 1);
 
         // Get acceleration
@@ -268,12 +268,12 @@ function drawScene() {
 
         if (nextY < lampBotHeight) {
             nextY = lampBotHeight;
-            if(mb.vy<-0.1)
+            if (mb.vy < -5)
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             mb.vy = 0;
         } else if (nextY > HEIGHT - lampTopHeight) {
             nextY = HEIGHT - lampTopHeight;
-            if(mb.vy>0.1)
+            if (mb.vy > 5)
                 mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             mb.vy = 0;
         } else {
@@ -283,9 +283,9 @@ function drawScene() {
                 mb.squeeze -= 3;
         }
 
+
         // Border constraints
-        if(nextX - mb.r < (halfWidth - greaterRadius) || nextX + mb.r > (halfWidth + greaterRadius))
-        {
+        if (nextX - mb.r < (halfWidth - greaterRadius) || nextX + mb.r > (halfWidth + greaterRadius)) {
             mb.vx = 0;
         }
 
@@ -334,7 +334,6 @@ function drawScene() {
     */
 }
 
-function toggleLight()
-{
+function toggleLight() {
     lightActivated = !lightActivated;
 }
