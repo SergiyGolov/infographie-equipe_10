@@ -21,7 +21,7 @@ var pMatrix = mat4.create();
 var metaballs = [];
 
 
-var NUM_METABALLS = 12;
+
 
 //Information for each metaball to pass to the GPU
 var metaballsGPU = [4 * NUM_METABALLS];
@@ -30,7 +30,9 @@ var metaballsGPU = [4 * NUM_METABALLS];
 var metaballsSqueezeGPU = [NUM_METABALLS];
 
 var SPEED = 1;
-var RADIUS = 60;
+
+var NUM_METABALLS = 30;
+var RADIUS = 40;
 var MIN_RADIUS = 20;
 
 // Update
