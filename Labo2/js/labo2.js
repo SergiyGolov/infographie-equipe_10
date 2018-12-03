@@ -41,6 +41,8 @@ var LAMP_RADIUS_MAX = 0.8;
 var LAMP_HEIGHT_TOP = 0.1;
 var LAMP_HEIGHT_BOT = 0.1;
 
+var light = [];
+var lightActivated  = true;
 
 function initShaderParameters(prg) {
     // Récupération d'attributs depuis le context OpenGL
@@ -56,6 +58,8 @@ function initShaderParameters(prg) {
 
     prg.width = glContext.getUniformLocation(prg, 'uWIDTH');
     prg.height = glContext.getUniformLocation(prg, 'uHEIGHT');
+
+    prg.lightActivated = glContext.getUniformLocation(prg, 'uLightActivated');
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
     prg.metaballsSqueeze = glContext.getUniformLocation(prg, 'uMetaballsSqueezes');
@@ -88,7 +92,7 @@ function initMetaBalls() {
 
     for (var i = 0; i < NUM_METABALLS; i++) {
         var radius = Math.random() * RADIUS + MIN_RADIUS;
-        var weight = 1;
+        var weight = radius/100.0;
         metaballs.push({
             x: Math.random() * (WIDTH - 2 * radius) + radius,
             y: Math.random() * (HEIGHT - 2 * radius) + radius,
@@ -119,6 +123,8 @@ function initWebGL() {
     WIDTH = canvas.width;
     HEIGHT = canvas.height;
 
+    light[0] = WIDTH / 2.0;
+    light[1] = 0;
     //console.log(WIDTH);
 
     glContext = getGLContext('webgl-canvas');
@@ -199,6 +205,8 @@ function drawScene() {
     glContext.uniform1f(prg.lampTopHeight, LAMP_HEIGHT_TOP);
     glContext.uniform1f(prg.lampBotHeight, LAMP_HEIGHT_BOT);
 
+    glContext.uniform1f(prg.lightActivated, (lightActivated) ? 1.0 : 0.0);
+
     glContext.uniform1f(prg.width, WIDTH);
     glContext.uniform1f(prg.height, HEIGHT);
 
@@ -253,8 +261,6 @@ function drawScene() {
                 mb.vy = mb.saveVy;
             }
         }
-
-       
     }
 
 
@@ -270,9 +276,7 @@ function drawScene() {
 
     glContext.uniform4fv(prg.metaballs, metaballsGPU);
     glContext.uniform1fv(prg.metaballsSqueeze, metaballsSqueezeGPU);
-    var light = [];
-    light[0] = WIDTH / 2.0;
-    light[1] = 0;
+
     glContext.uniform2fv(prg.light, light);
     glContext.drawElements(glContext.TRIANGLE_STRIP, indices.length, glContext.UNSIGNED_SHORT, 0);
 
@@ -294,4 +298,9 @@ function drawScene() {
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, lampBotIndexBuffer);
     glContext.drawElements(glContext.TRIANGLE_STRIP, lampBotIndices.length, glContext.UNSIGNED_SHORT, 0);
     */
+}
+
+function toggleLight()
+{
+    lightActivated = !lightActivated;
 }

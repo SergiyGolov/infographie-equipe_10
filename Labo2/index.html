@@ -19,7 +19,7 @@
   <canvas id="webgl-canvas" width="400" height="600">
     HTML5 is not supported
   </canvas>
-  <button id="sqitch">Toggle light</button>
+  <button id="sqitch" onclick="toggleLight();" >Toggle light</button>
 </body>
 
 <script id="shader-vs" type="x-shader/x-vertex">
@@ -54,6 +54,7 @@
       uniform float uWIDTH;
       uniform float uHEIGHT;
 
+      uniform float uLightActivated;
 
       void main()
       {
@@ -66,7 +67,7 @@
             float lampBotHeight = uLampBotHeight * uHEIGHT;
             float smallerRingRadius = halfWidth * uLampWidthMin;
             float greaterRingRadius = halfWidth * uLampWidthMax;
-            
+
 
 
             if(y < lampBotHeight) // Bottom of the lamp
@@ -162,22 +163,27 @@
                                     float squeeze_factor=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); // 1.0->2.0
 
                                     dx/=squeeze_factor; //1.0 -> 2.0
-                                    
+
                                     dy*=squeeze_factor;
                               }
                               else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
                                     float squeeze_factor=(SQUEEZE_MAX/squeeze); // 2.0->1.0
-                                    
-                                    dx/=squeeze_factor; 
-                                    
+
+                                    dx/=squeeze_factor;
+
                                     dy*=squeeze_factor;
                               }
 
                               v += weight*r*r/(dx*dx + dy*dy);
                         }
 
-                        vec2  ray = vec2(x - uLight.x, y - uLight.y);
-                        float luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
+                        float luminosity = 600.0;
+                        if (uLightActivated == 1.0)
+                        {
+                              vec2  ray = vec2(x - uLight.x, y - uLight.y);
+                              luminosity = sqrt(ray.x * ray.x + ray.y * ray.y);
+                        }
+
                         if (v >= 2.0)
                         {
                               gl_FragColor = vec4(250.0/luminosity, 0.0, 0.0, 1.0);
