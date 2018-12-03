@@ -22,7 +22,11 @@ var metaballs = [];
 
 
 var NUM_METABALLS = 12;
+
+//Information for each metaball to pass to the GPU
 var metaballsGPU = [4 * NUM_METABALLS];
+
+//Squeeze frame count to pass to the GPU
 var metaballsSqueezeGPU = [NUM_METABALLS];
 
 var SPEED = 1;
@@ -247,10 +251,11 @@ function drawScene() {
 
 
 
-        // Apply Lava Lamp Force
+        // Apply Lava Lamp Force (the warmth is pushing the balls upwards), random is used to avoid balls stacking in the same position after the light turns off 
         if (lightActivated && (Math.random() > 0.3))
             mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
 
+        //Random x force to avoid the stacking of the balls on the same position after the light turns off
         if (lightActivated && (Math.random() > 0.7))
             mb.fx += 10 * (Math.random() * 2 - 1);
 
@@ -268,18 +273,19 @@ function drawScene() {
 
         if (nextY < lampBotHeight) {
             nextY = lampBotHeight;
-            if (mb.vy < -5)
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
+            if (mb.vy < -5) //avoid calling the squeeze animation if the ball has not enough inertia
+                mb.squeeze = SQUEEZE_MAX; // frame tick number for squeeze animation
             mb.vy = 0;
         } else if (nextY > HEIGHT - lampTopHeight) {
             nextY = HEIGHT - lampTopHeight;
-            if (mb.vy > 5)
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
+            if (mb.vy > 5)//avoid calling the squeeze animation if the ball has not enough inertia
+                mb.squeeze = SQUEEZE_MAX; // frame tick number for squeeze animation
             mb.vy = 0;
         } else {
+            //if ball is beyond limits, the squeeze animation duration is extended
             if (nextY > HEIGHT - lampTopHeight - mb.radius || nextY < lampBotHeight + mb.radius)
                 mb.squeeze += 3;
-            else
+            else //decrement squeeze animation count, influences duration of the animation (if we substract more than 3 the animation is faster, if we substract less than 3 the animation is slower)
                 mb.squeeze -= 3;
         }
 
@@ -298,6 +304,7 @@ function drawScene() {
     }
 
 
+    //We copy the values to pass to the GPU
     for (var i = 0; i < NUM_METABALLS; i++) {
         var baseIndex = 4 * i;
         var mb = metaballs[i];

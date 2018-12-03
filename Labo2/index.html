@@ -40,9 +40,13 @@
       //Sorry for this, but we can't pass a const with a uniform variable
       const int NB_METABALLS=12;
       
+      //Max frame count for squeezing animation when the balls are on the bottom/top of the lamp
       uniform float uMetaballsSqueezeMax;
 
+      //Information for each metaball: x,y position, radius and weight
       uniform vec4 uMetaballs[NB_METABALLS];
+
+      //Squeeze animation frame count
       uniform float uMetaballsSqueezes[NB_METABALLS];
       uniform vec2 uLight;
 
@@ -160,13 +164,15 @@
                               float dx = mb.x - x;
                               float dy = mb.y - y;
                               float r = mb.z;
+
+                              //First half of animation: dilatation in x and contraction in y
                               if(squeeze>0.0 && squeeze<uMetaballsSqueezeMax/2.0){
                                     float squeeze_factor=(uMetaballsSqueezeMax/(uMetaballsSqueezeMax-squeeze)); // 1.0->2.0
 
                                     dx/=squeeze_factor;
 
                                     dy*=squeeze_factor;
-                              }
+                              }//Second half of animation: contraction in x and dilatation in y to come back to original state (round) before squeeze animation
                               else if(squeeze>0.0 && squeeze>=uMetaballsSqueezeMax/2.0){
                                     float squeeze_factor=(uMetaballsSqueezeMax/squeeze); // 2.0->1.0
 
