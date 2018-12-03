@@ -46,6 +46,7 @@ var LAMP_HEIGHT_BOT = 0.1;
 var light = [];
 var lightActivated  = true;
 
+
 function initShaderParameters(prg) {
     // Récupération d'attributs depuis le context OpenGL
     prg.vertexPositionAttribute = glContext.getAttribLocation(prg, "aVertexPosition");
@@ -57,6 +58,7 @@ function initShaderParameters(prg) {
     prg.lampWidthMax = glContext.getUniformLocation(prg, 'uLampWidthMax');
     prg.lampTopHeight = glContext.getUniformLocation(prg, 'uLampTopHeight');
     prg.lampBotHeight = glContext.getUniformLocation(prg, 'uLampBotHeight');
+    
 
     prg.width = glContext.getUniformLocation(prg, 'uWIDTH');
     prg.height = glContext.getUniformLocation(prg, 'uHEIGHT');
@@ -65,6 +67,8 @@ function initShaderParameters(prg) {
 
     prg.metaballs = glContext.getUniformLocation(prg, 'uMetaballs');
     prg.metaballsSqueeze = glContext.getUniformLocation(prg, 'uMetaballsSqueezes');
+    prg.metaballsSqueezeMax = glContext.getUniformLocation(prg, 'uMetaballsSqueezeMax');
+
     prg.light = glContext.getUniformLocation(prg, 'uLight');
 
     // Activation des tabeaux de données des sommets comme "attribut" OpenGL
@@ -215,6 +219,8 @@ function drawScene() {
     glContext.uniform1f(prg.width, WIDTH);
     glContext.uniform1f(prg.height, HEIGHT);
 
+    glContext.uniform1f(prg.metaballsSqueezeMax, SQUEEZE_MAX);
+
     glContext.bindBuffer(glContext.ARRAY_BUFFER, vertexBuffer);
     glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 2 * 4, 0);
     glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, indexBuffer);
@@ -239,11 +245,14 @@ function drawScene() {
         // Apply Gravity
         mb.fy += -9.81 * mb.weight;
 
+
+
         // Apply Lava Lamp Force
-        if(lightActivated + (Math.random() > 0.3))
+        if(lightActivated && (Math.random() > 0.3))
             mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
-        if(lightActivated + (Math.random() > 0.7))
-            mb.fx += 5 * (Math.random() * 2 - 1);
+
+        if(lightActivated && (Math.random() > 0.7))
+            mb.fx += 10 * (Math.random() * 2 - 1);
 
         // Get acceleration
         let ax = mb.fx / mb.weight;
@@ -259,12 +268,14 @@ function drawScene() {
 
         if (nextY < lampBotHeight) {
             nextY = lampBotHeight;
+            if(mb.vy<-0.1)
+                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             mb.vy = 0;
-            mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
         } else if (nextY > HEIGHT - lampTopHeight) {
             nextY = HEIGHT - lampTopHeight;
+            if(mb.vy>0.1)
+                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
             mb.vy = 0;
-            mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
         } else {
             if (nextY > HEIGHT - lampTopHeight - mb.radius || nextY < lampBotHeight + mb.radius)
                 mb.squeeze += 3;

@@ -37,9 +37,10 @@
             precision highp float;
       #endif
 
+      //Sorry for this, but we can't pass a const with a uniform variable
       const int NB_METABALLS=12;
-      float SQUEEZE_MAX=400.0; // TO-DO: pass this variable with uniform to shader
-
+      
+      uniform float uMetaballsSqueezeMax;
 
       uniform vec4 uMetaballs[NB_METABALLS];
       uniform float uMetaballsSqueezes[NB_METABALLS];
@@ -159,15 +160,15 @@
                               float dx = mb.x - x;
                               float dy = mb.y - y;
                               float r = mb.z;
-                              if(squeeze>0.0 && squeeze<SQUEEZE_MAX/2.0){
-                                    float squeeze_factor=(SQUEEZE_MAX/(SQUEEZE_MAX-squeeze)); // 1.0->2.0
+                              if(squeeze>0.0 && squeeze<uMetaballsSqueezeMax/2.0){
+                                    float squeeze_factor=(uMetaballsSqueezeMax/(uMetaballsSqueezeMax-squeeze)); // 1.0->2.0
 
-                                    dx/=squeeze_factor; //1.0 -> 2.0
+                                    dx/=squeeze_factor;
 
                                     dy*=squeeze_factor;
                               }
-                              else if(squeeze>0.0 && squeeze>=SQUEEZE_MAX/2.0){
-                                    float squeeze_factor=(SQUEEZE_MAX/squeeze); // 2.0->1.0
+                              else if(squeeze>0.0 && squeeze>=uMetaballsSqueezeMax/2.0){
+                                    float squeeze_factor=(uMetaballsSqueezeMax/squeeze); // 2.0->1.0
 
                                     dx/=squeeze_factor;
 
