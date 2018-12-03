@@ -253,7 +253,7 @@ function drawScene() {
 
 
 
-        // Apply Lava Lamp Force (the warmth is pushing the balls upwards), random is used to avoid balls stacking in the same position after the light turns off 
+        // Apply Lava Lamp Force (the warmth is pushing the balls upwards), random is used to avoid balls stacking in the same position after the light turns off
         if (lightActivated && (Math.random() > 0.3))
             mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
 
@@ -322,25 +322,6 @@ function drawScene() {
 
     glContext.uniform2fv(prg.light, light);
     glContext.drawElements(glContext.TRIANGLE_STRIP, indices.length, glContext.UNSIGNED_SHORT, 0);
-
-    // Draw lamp
-
-    /* With current technique it can't be used
-
-    // Top part
-    glContext.bindBuffer(glContext.ARRAY_BUFFER, lampTopBuffer);
-    glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 0, 0);
-
-    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, lampTopIndexBuffer);
-    glContext.drawElements(glContext.TRIANGLE_STRIP, lampTopIndices.length, glContext.UNSIGNED_SHORT, 0);
-
-    // Bot part
-    glContext.bindBuffer(glContext.ARRAY_BUFFER, lampBotBuffer);
-    glContext.vertexAttribPointer(prg.vertexPositionAttribute, 2, glContext.FLOAT, false, 0, 0);
-
-    glContext.bindBuffer(glContext.ELEMENT_ARRAY_BUFFER, lampBotIndexBuffer);
-    glContext.drawElements(glContext.TRIANGLE_STRIP, lampBotIndices.length, glContext.UNSIGNED_SHORT, 0);
-    */
 }
 
 function toggleLight() {
