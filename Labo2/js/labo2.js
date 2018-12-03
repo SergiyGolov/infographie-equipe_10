@@ -29,6 +29,8 @@ var SPEED = 1;
 var RADIUS = 60;
 var MIN_RADIUS = 20;
 
+// Update
+var previousTime = new Date().getTime();
 
 var canvas = null;
 var WIDTH = 0;
@@ -96,7 +98,10 @@ function initMetaBalls() {
         metaballs.push({
             x: Math.random() * (WIDTH - 2 * radius) + radius,
             y: Math.random() * (HEIGHT - 2 * radius) + radius,
+            vx: 0,
             vy: Math.random() * SPEED - SPEED / 2.0,
+            fx: 0,
+            fy: 0,
             r: radius,
             weight: weight,
             squeeze:0
@@ -219,48 +224,66 @@ function drawScene() {
     let greaterRadius = (LAMP_RADIUS_MAX / 2.0) * WIDTH;
     let halfWidth = WIDTH / 2.0;
 
+    // Get seconds elapsed
+    let dt = (new Date().getTime() - previousTime) / 1000.0;
+    let dt2 = dt * dt;
+
     // Update positions and speeds
     for (let i = 0; i < NUM_METABALLS; i++) {
         var mb = metaballs[i];
 
-        if (mb.squeeze == 0) {
-            mb.y += mb.vy;
-            if (mb.y < lampBotHeight ) {
-                mb.y = lampBotHeight;
-                mb.saveVy=Math.abs(mb.vy)*1.25;
-                mb.vy = 0;
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
-            } else if (mb.y > HEIGHT - lampTopHeight) {
-                mb.y = HEIGHT - lampTopHeight;
-                mb.saveVy=-mb.vy*0.8;
-                mb.vy = 0;
-                mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
-            }else{
+        // Reset force
+        mb.fx = 0;
+        mb.fy = 0;
 
-                if(mb.vy>0 && mb.y-lampBotHeight<(HEIGHT - lampTopHeight-lampBotHeight)/4.0){
-                    mb.vy*=1.001;
-                }else if (mb.vy<0 && mb.y-lampBotHeight>(HEIGHT - lampTopHeight-lampBotHeight)*3.0/4.0){
-                    mb.vy*=0.999;
-                }
+        // Apply Gravity
+        mb.fy += -9.81 * mb.weight;
 
-            }
+        // Apply Lava Lamp Force
+        if(lightActivated + (Math.random() > 0.3))
+            mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
+        if(lightActivated + (Math.random() > 0.7))
+            mb.fx += 5 * (Math.random() * 2 - 1);
 
-             //console.log(halfWidth - greaterRadius);
-            if(mb.x - mb.r < (halfWidth - greaterRadius))
-            {
-                mb.x += 0.1;
-            }
-            else if(mb.x + mb.r > (halfWidth + greaterRadius))
-            {
-                mb.x -= 0.1;
-            }
+        // Get acceleration
+        let ax = mb.fx / mb.weight;
+        let ay = mb.fy / mb.weight;
 
+        // Get new position
+        let nextX = mb.x + (mb.vx * dt) + (ax * dt2);
+        let nextY = mb.y + (mb.vy * dt) + (ay * dt2);
+
+        // Get new speed
+        mb.vx = (nextX - mb.x) / dt;
+        mb.vy = (nextY - mb.y) / dt;
+
+        if (nextY < lampBotHeight) {
+            nextY = lampBotHeight;
+            mb.vy = 0;
+            mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
+        } else if (nextY > HEIGHT - lampTopHeight) {
+            nextY = HEIGHT - lampTopHeight;
+            mb.vy = 0;
+            mb.squeeze = SQUEEZE_MAX; // tick number for squeeze animation
         } else {
-            mb.squeeze--;
-            if (mb.squeeze == 0) {
-                mb.vy = mb.saveVy;
-            }
+            if (nextY > HEIGHT - lampTopHeight - mb.radius || nextY < lampBotHeight + mb.radius)
+                mb.squeeze += 3;
+            else
+                mb.squeeze -= 3;
         }
+
+        // Border constraints
+        if(nextX - mb.r < (halfWidth - greaterRadius) || nextX + mb.r > (halfWidth + greaterRadius))
+        {
+            mb.vx = 0;
+        }
+
+        // Set new position
+        mb.x = nextX;
+        mb.y = nextY;
+
+        // Reset previous time
+        previousTime = new Date().getTime();
     }
 
 
