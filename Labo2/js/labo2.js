@@ -155,6 +155,8 @@ function initWebGL() {
     initBuffers();
 
     renderLoop();
+
+
 }
 
 function initLamp() {
@@ -252,10 +254,18 @@ function drawScene() {
         mb.fy += -9.81 * mb.weight;
 
 
+        // Border constraints
+        if (mb.x - mb.r < halfWidth - greaterRadius) {
+            mb.x = halfWidth - greaterRadius + mb.r;
+            mb.fx += 1;
+        } else if (mb.x + mb.r > halfWidth + greaterRadius) {
+            mb.x = halfWidth + greaterRadius - mb.r;
+            mb.fx -= 1;
+        }
 
         // Apply Lava Lamp Force (the warmth is pushing the balls upwards), random is used to avoid balls stacking in the same position after the light turns off
         if (lightActivated && (Math.random() > 0.3))
-            mb.fy += ((365 * mb.r) / (mb.y * 15) + mb.weight);
+            mb.fy += ((365 * mb.r) / (mb.y * 12) + mb.weight);
 
         //Random x force to avoid the stacking of the balls on the same position after the light turns off
         if (lightActivated && (Math.random() > 0.7))
@@ -280,7 +290,7 @@ function drawScene() {
             mb.vy = 0;
         } else if (nextY > HEIGHT - lampTopHeight) {
             nextY = HEIGHT - lampTopHeight;
-            if (mb.vy > 5)//avoid calling the squeeze animation if the ball has not enough inertia
+            if (mb.vy > 5) //avoid calling the squeeze animation if the ball has not enough inertia
                 mb.squeeze = SQUEEZE_MAX; // frame tick number for squeeze animation
             mb.vy = 0;
         } else {
@@ -292,10 +302,7 @@ function drawScene() {
         }
 
 
-        // Border constraints
-        if (nextX - mb.r < (halfWidth - greaterRadius) || nextX + mb.r > (halfWidth + greaterRadius)) {
-            mb.vx = 0;
-        }
+
 
         // Set new position
         mb.x = nextX;
